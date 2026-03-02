@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h3>Settings</h3>
+  <p>Bed dimensions: <strong>{{ config.bed.x }} x {{ config.bed.y }}</strong> (locked: {{ config.bed.locked }})</p>
+  <form id="cfg" class="form-grid">
+    <label>Profile <input name="profile" value="{{ config.profile }}" /></label>
+    <label>Worker count <input type="number" name="worker_count" value="{{ config.worker_count }}" /></label>
+    <label>Cache enabled <input type="checkbox" name="cache_enabled" {% if config.cache_enabled %}checked{% endif %} /></label>
+    <label>Weight support <input type="number" step="0.01" name="support" value="{{ config.weights.support }}" /></label>
+    <label>Weight time <input type="number" step="0.01" name="time" value="{{ config.weights.time }}" /></label>
+    <label>Weight height <input type="number" step="0.01" name="height" value="{{ config.weights.height }}" /></label>
+    <button type="button" onclick="saveCfg()">Save Config JSON</button>
+  </form>
+</section>
+<script>
+async function saveCfg(){
+  const f = document.getElementById('cfg');
+  const data = {
+    brand:'U-Wright Open Innovations',
+    title:'Creality 220 Orientation Optimizer',
+    profile:f.profile.value,
+    bed:{x:220,y:220,locked:true},
+    worker_count:parseInt(f.worker_count.value||'2', 10),
+    cache_enabled:f.cache_enabled.checked,
+    weights:{support:parseFloat(f.support.value), time:parseFloat(f.time.value), height:parseFloat(f.height.value)}
+  };
+  await fetch('/api/config',{method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(data)});
+  location.reload();
+}
+</script>
+{% endblock %}

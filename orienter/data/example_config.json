@@ -1,0 +1,9 @@
+{
+  "brand": "U-Wright Open Innovations",
+  "title": "Creality 220 Orientation Optimizer",
+  "profile": "Creality_220_Generic",
+  "bed": {"x": 220, "y": 220, "locked": true},
+  "weights": {"support": 0.4, "time": 0.35, "height": 0.25},
+  "worker_count": 2,
+  "cache_enabled": true
+}

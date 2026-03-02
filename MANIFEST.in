@@ -1,0 +1,2 @@
+recursive-include orienter/ui/templates *.html
+recursive-include orienter/ui/static *.css
