@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>{{ config.title if config else 'Creality 220 Orientation Optimizer' }}</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <div class="layout">
+    <aside class="sidebar">
+      <h1>U-Wright Open Innovations</h1>
+      <h2>Creality 220 Orientation Optimizer</h2>
+      <nav>
+        <a href="/">Dashboard</a>
+        <a href="/runs/new">New Run</a>
+        <a href="/runs">Runs</a>
+        <a href="/settings">Settings</a>
+      </nav>
+    </aside>
+    <main class="content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+  <footer class="status-bar">LOCAL MODE · NO CLOUD · PORT 8787</footer>
+</body>
+</html>
