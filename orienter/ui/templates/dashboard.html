@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h3>System Status</h3>
+  <div class="grid3">
+    <div><span>Engine Mode</span><strong>{{ status.engine_mode }}</strong></div>
+    <div><span>Profile</span><strong>{{ status.profile }}</strong></div>
+    <div><span>Last Run</span><strong>{{ status.last_run }}</strong></div>
+  </div>
+</section>
+<section class="panel">
+  <h3>Recent Runs</h3>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th><th>Created</th><th>Profile</th></tr></thead>
+    <tbody>
+      {% for run in runs %}
+      <tr><td><a href="/runs/{{ run.id }}">{{ run.id[:8] }}</a></td><td>{{ run.status }}</td><td>{{ run.created_at }}</td><td>{{ run.profile }}</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}

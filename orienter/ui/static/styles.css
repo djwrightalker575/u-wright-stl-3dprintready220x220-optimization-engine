@@ -1,0 +1,16 @@
+:root{--bg:#0e1116;--panel:#151b24;--text:#d8e0ea;--muted:#7f8ea3;--accent:#2dd4bf;--line:#243142}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Segoe UI,Arial}
+.layout{display:grid;grid-template-columns:260px 1fr;min-height:calc(100vh - 36px)}
+.sidebar{background:#0b1018;border-right:1px solid var(--line);padding:20px}.sidebar h1{font-size:16px;margin:0 0 4px}.sidebar h2{font-size:13px;color:var(--muted);margin:0 0 18px}
+.sidebar a{display:block;padding:10px 12px;margin:6px 0;background:#121a25;color:var(--text);text-decoration:none;border:1px solid var(--line);border-radius:8px}
+.sidebar a:hover{border-color:var(--accent);box-shadow:0 0 12px rgba(45,212,191,.2)}
+.content{padding:22px;display:grid;gap:18px}.panel{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+h3{margin:0 0 12px}.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.grid3 div{background:#121924;padding:10px;border-radius:8px;border:1px solid var(--line)}
+span{display:block;color:var(--muted);font-size:12px}strong{font-size:14px}
+table{width:100%;border-collapse:collapse}th,td{border-bottom:1px solid var(--line);padding:8px;text-align:left;font-size:13px}a{color:#77f7e4}
+.form-grid{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:12px}label{display:flex;flex-direction:column;gap:6px;font-size:13px}
+input,select,button{background:#0f1520;border:1px solid var(--line);color:var(--text);padding:9px;border-radius:8px}button{cursor:pointer}
+.inline-form{display:flex;gap:10px;align-items:center;flex-wrap:wrap}.progress{width:100%;background:#0f1520;border:1px solid var(--line);height:16px;border-radius:20px;overflow:hidden}.progress>div{height:100%;background:linear-gradient(90deg,#2dd4bf,#67e8f9)}
+pre{max-height:320px;overflow:auto;background:#0f1520;padding:10px;border-radius:8px;border:1px solid var(--line)}
+.status-bar{height:36px;display:flex;align-items:center;padding:0 14px;background:#0b1018;border-top:1px solid var(--line);color:var(--muted);font-size:12px}
+@media (max-width:900px){.layout{grid-template-columns:1fr}.sidebar{border-right:none;border-bottom:1px solid var(--line)}.form-grid,.grid3{grid-template-columns:1fr}}

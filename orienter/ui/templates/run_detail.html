@@ -1,0 +1,46 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h3>Run {{ run.id }}</h3>
+  <p>Status: <strong>{{ run.status }}</strong> · Last heartbeat: {{ run.last_heartbeat }}</p>
+  <div class="progress"><div style="width: {{ progress }}%"></div></div>
+  <div class="inline-form">
+    <button onclick="act('pause')">Pause</button>
+    <button onclick="act('resume')">Resume</button>
+    <button onclick="act('stop')">Stop</button>
+    <a href="/api/runs/{{ run.id }}/download/reports_csv">Download CSV</a>
+  </div>
+</section>
+<section class="panel">
+  <h3>Results</h3>
+  <table>
+    <thead><tr><th>Model</th><th>Best score</th><th>Support Δ filament</th><th>Support Δ time</th><th>Total time</th><th>Z height</th><th>Rank</th></tr></thead>
+    <tbody>
+      {% for m in run.models %}
+      <tr>
+        <td>{{ m.model_path }}</td>
+        <td>{{ m.best_score }}</td>
+        <td>{{ m.metrics_json.support_filament_delta }}</td>
+        <td>{{ m.metrics_json.support_time_delta }}</td>
+        <td>{{ m.metrics_json.total_time }}</td>
+        <td>{{ m.metrics_json.z_height }}</td>
+        <td>{{ m.metrics_json.orientation_rank }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+<section class="panel">
+  <h3>Log Tail</h3>
+  <pre id="logs">{% for l in logs %}[{{ l.ts }}] {{ l.level }} {{ l.message }}
+{% endfor %}</pre>
+</section>
+<script>
+async function act(name){ await fetch(`/api/runs/{{ run.id }}/${name}`, {method:'POST'}); location.reload(); }
+async function poll(){
+  const logs = await fetch(`/api/runs/{{ run.id }}/logs?tail=200`).then(r=>r.json());
+  document.getElementById('logs').textContent = logs.map(l=>`[${l.ts}] ${l.level} ${l.message}`).join('\n');
+}
+setInterval(poll, 3000);
+</script>
+{% endblock %}

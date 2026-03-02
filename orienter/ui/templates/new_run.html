@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h3>Start New Run</h3>
+  <form method="post" action="/runs/new" class="form-grid">
+    <label>Input path <input name="input_path" required /></label>
+    <label>Output path <input name="output_path" required /></label>
+    <label>Profile <input name="profile" value="Creality_220_Generic" /></label>
+    <label>Top K <input type="number" name="top_k" value="5" /></label>
+    <label>Slice top N <input type="number" name="slice_top_n" value="12" /></label>
+    <label>Weight preset
+      <select name="weight_preset">
+        {% for p in presets.keys() %}
+        <option value="{{ p }}">{{ p }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <label>Overhang angle <input type="number" name="overhang_angle" value="45" /></label>
+    <label><input type="checkbox" name="dry_run" /> Dry run</label>
+    <button type="submit">Start Run</button>
+  </form>
+</section>
+{% endblock %}

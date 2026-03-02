@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="panel">
+  <h3>Run History</h3>
+  <form method="get" class="inline-form">
+    <input name="search" placeholder="search" value="{{ search }}" />
+    <select name="status">
+      <option value="">All</option>
+      {% for s in ['PENDING','RUNNING','PAUSED','COMPLETED','FAILED','STOPPED','INTERRUPTED'] %}
+      <option value="{{ s }}" {% if status==s %}selected{% endif %}>{{ s }}</option>
+      {% endfor %}
+    </select>
+    <button type="submit">Filter</button>
+  </form>
+  <table>
+    <thead><tr><th>ID</th><th>Status</th><th>Input</th><th>Output</th><th>Heartbeat</th></tr></thead>
+    <tbody>
+      {% for run in runs %}
+      <tr>
+        <td><a href="/runs/{{ run.id }}">{{ run.id[:8] }}</a></td>
+        <td>{{ run.status }}</td><td>{{ run.input_path }}</td><td>{{ run.output_path }}</td><td>{{ run.last_heartbeat }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+{% endblock %}
