@@ -1,0 +1,12 @@
+body { margin: 0; font-family: Arial, sans-serif; background: #f5f7fa; }
+main { display: grid; grid-template-columns: 320px 360px 1fr; gap: 12px; padding: 12px; height: 100vh; box-sizing: border-box; }
+.panel { background: white; border-radius: 8px; padding: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.1); overflow: auto; }
+#logBox { height: 200px; background: #111; color: #9fe29f; padding: 8px; border-radius: 6px; }
+#candidateGrid { display: grid; gap: 8px; }
+.card { border: 1px solid #ddd; border-radius: 6px; padding: 8px; cursor: pointer; }
+.card.active { border-color: #3b82f6; background: #eff6ff; }
+.preview-panel { display: flex; flex-direction: column; }
+#viewer { flex: 1; min-height: 320px; border: 1px solid #ddd; margin-top: 8px; }
+.toggles { display: flex; gap: 10px; margin-top: 4px; }
+button { background: #2563eb; border: 0; color: white; padding: 8px 12px; border-radius: 6px; cursor: pointer; }
+button:disabled { opacity: .5; cursor: not-allowed; }
