@@ -1,0 +1,43 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Local STL Orientation Optimizer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <main>
+    <section class="panel">
+      <h1>STL Orientation Optimizer</h1>
+      <input id="stlFile" type="file" accept=".stl" />
+      <button id="optimizeBtn">Optimize</button>
+      <div id="runInfo"></div>
+      <pre id="logBox"></pre>
+    </section>
+
+    <section class="panel">
+      <h2>Candidates</h2>
+      <div id="candidateGrid"></div>
+    </section>
+
+    <section class="panel preview-panel">
+      <h2>Toolpath Preview</h2>
+      <div>
+        <label>Layer: <input id="layerSlider" type="range" min="0" max="0" value="0" /></label>
+        <span id="layerLabel">0 / 0</span>
+      </div>
+      <div class="toggles">
+        <label><input type="checkbox" id="toggleMODEL" checked />MODEL</label>
+        <label><input type="checkbox" id="toggleSUPPORT" checked />SUPPORT</label>
+        <label><input type="checkbox" id="toggleBRIM" checked />BRIM</label>
+        <label><input type="checkbox" id="toggleTRAVEL" />TRAVEL</label>
+      </div>
+      <div id="viewer"></div>
+      <button id="chooseBtn" disabled>Choose + Download ZIP</button>
+    </section>
+  </main>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,5 @@
+data/runs/
+backend/__pycache__/
+*.pyc
+.venv/
+node_modules/
