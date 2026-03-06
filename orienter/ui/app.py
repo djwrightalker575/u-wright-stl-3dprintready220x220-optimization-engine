@@ -4,8 +4,8 @@ import html
 from pathlib import Path
 
 import uvicorn
-from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, HTMLResponse, JSONResponse
+from fastapi import FastAPI, HTTPException, Query, Request
+from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from orienter.ui.config import resolve_paths
@@ -68,30 +68,10 @@ def run_detail_page(run_id: str) -> HTMLResponse:
     total = max(len(run['models']), 1)
     completed = sum(1 for m in run['models'] if m['status'] == 'COMPLETED')
     progress = int((completed / total) * 100)
-
-    rows = []
-    preview_panels = []
-    for m in run['models']:
-        mj = m['metrics_json']
-        invalid_count = mj.get('invalid_candidates_count', 0)
-        badge = f" <span style='color:#f59e0b'>⚠ invalid:{invalid_count}</span>" if invalid_count else ""
-        rows.append(
-            f"<tr><td>{html.escape(m['model_path'])}{badge}</td><td>{m.get('best_score','')}</td><td>{mj.get('support_filament_delta','')}</td><td>{mj.get('support_time_delta','')}</td><td>{mj.get('total_time','')}</td><td>{mj.get('z_height','')}</td><td>{mj.get('orientation_rank','')}</td></tr>"
-        )
-        candidates = mj.get('candidates', [])
-        cblocks = []
-        for c in candidates:
-            cid = c.get('candidate_id')
-            stat = c.get('status')
-            warn = f"<div style='color:#f59e0b'>{html.escape(c.get('invalid_reason') or '')}</div>" if stat == 'INVALID' else ""
-            cblocks.append(
-                f"<details><summary>candidate {c.get('candidate_index')} · {cid} · {stat}</summary>{warn}<div class='grid3'><div><img src='/api/runs/{run_id}/preview/{cid}/iso' style='width:100%'/></div><div><img src='/api/runs/{run_id}/preview/{cid}/top' style='width:100%'/></div><div><img src='/api/runs/{run_id}/preview/{cid}/supports_overlay' style='width:100%'/></div></div></details>"
-            )
-        preview_panels.append(f"<section class='panel'><h3>Previews · {html.escape(Path(m['model_path']).name)}</h3>{''.join(cblocks)}</section>")
-
+    rows = ''.join(f"<tr><td>{html.escape(m['model_path'])}</td><td>{m.get('best_score','')}</td><td>{m['metrics_json'].get('support_filament_delta','')}</td><td>{m['metrics_json'].get('support_time_delta','')}</td><td>{m['metrics_json'].get('total_time','')}</td><td>{m['metrics_json'].get('z_height','')}</td><td>{m['metrics_json'].get('orientation_rank','')}</td></tr>" for m in run['models'])
     logs = manager.logs(run_id, tail=200)
     log_text = '\n'.join(f"[{l['ts']}] {l['level']} {l['message']}" for l in logs)
-    content = f"<section class='panel'><h3>Run {run['id']}</h3><p>Status: <strong>{run['status']}</strong> · Last heartbeat: {run['last_heartbeat']}</p><div class='progress'><div style='width:{progress}%'></div></div><div class='inline-form'><button onclick=\"act('pause')\">Pause</button><button onclick=\"act('resume')\">Resume</button><button onclick=\"act('stop')\">Stop</button><a href='/api/runs/{run_id}/download/reports_csv'>Download CSV</a></div></section><section class='panel'><h3>Best Candidate Results (scored only on valid candidates)</h3><table><thead><tr><th>Model</th><th>Best score</th><th>Support Δ filament (mm)</th><th>Support Δ time (s)</th><th>Total time</th><th>Z height</th><th>Rank</th></tr></thead><tbody>{''.join(rows)}</tbody></table></section>{''.join(preview_panels)}<section class='panel'><h3>Log Tail</h3><pre id='logs'>{html.escape(log_text)}</pre></section><script>async function act(name){{await fetch(`/api/runs/{run_id}/${{name}}`,{{method:'POST'}});location.reload();}} async function poll(){{const logs=await fetch('/api/runs/{run_id}/logs?tail=200').then(r=>r.json()); document.getElementById('logs').textContent=logs.map(l=>`[${{l.ts}}] ${{l.level}} ${{l.message}}`).join('\\n');}} setInterval(poll,3000);</script>"
+    content = f"<section class='panel'><h3>Run {run['id']}</h3><p>Status: <strong>{run['status']}</strong> · Last heartbeat: {run['last_heartbeat']}</p><div class='progress'><div style='width:{progress}%'></div></div><div class='inline-form'><button onclick=\"act('pause')\">Pause</button><button onclick=\"act('resume')\">Resume</button><button onclick=\"act('stop')\">Stop</button><a href='/api/runs/{run_id}/download/reports_csv'>Download CSV</a></div></section><section class='panel'><h3>Results</h3><table><thead><tr><th>Model</th><th>Best score</th><th>Support Δ filament</th><th>Support Δ time</th><th>Total time</th><th>Z height</th><th>Rank</th></tr></thead><tbody>{rows}</tbody></table></section><section class='panel'><h3>Log Tail</h3><pre id='logs'>{html.escape(log_text)}</pre></section><script>async function act(name){{await fetch(`/api/runs/{run_id}/${{name}}`,{{method:'POST'}});location.reload();}} async function poll(){{const logs=await fetch('/api/runs/{run_id}/logs?tail=200').then(r=>r.json()); document.getElementById('logs').textContent=logs.map(l=>`[${{l.ts}}] ${{l.level}} ${{l.message}}`).join('\\n');}} setInterval(poll,3000);</script>"
     return HTMLResponse(layout(content))
 
 
@@ -162,23 +142,6 @@ def api_download(run_id: str, artifact: str) -> FileResponse:
     return FileResponse(str(p), filename=p.name)
 
 
-@app.get('/api/runs/{run_id}/preview/{candidate_id}/{image_kind}')
-def api_preview(run_id: str, candidate_id: str, image_kind: str) -> FileResponse:
-    run = manager.run_detail(run_id)
-    if not run:
-        raise HTTPException(404)
-    key = image_kind if image_kind in {"iso", "top", "supports_overlay"} else None
-    if key is None:
-        raise HTTPException(404)
-    for m in run.get("models", []):
-        for c in m.get("metrics_json", {}).get("candidates", []):
-            if c.get("candidate_id") == candidate_id:
-                p = Path(c.get("previews", {}).get(key, ""))
-                if p.exists():
-                    return FileResponse(str(p), filename=p.name)
-    raise HTTPException(404)
-
-
 @app.get('/api/config')
 def api_get_config() -> dict:
     return manager.load_config()
@@ -188,6 +151,11 @@ def api_get_config() -> dict:
 def api_set_config(payload: dict) -> JSONResponse:
     manager.save_config(payload)
     return JSONResponse({'status': 'ok'})
+
+
+@app.get('/runs/new/legacy')
+def legacy_redirect(request: Request) -> RedirectResponse:  # compatibility
+    return RedirectResponse('/runs/new', status_code=307)
 
 
 def run_ui(host: str = '127.0.0.1', port: int = 8787, reload: bool = False) -> None:

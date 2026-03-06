@@ -6,7 +6,7 @@ from pathlib import Path
 
 from orienter.ui.config import AppPaths
 from orienter.ui.schemas import RunCreate
-from orienter.ui.service import RunManager, parse_slicer_stats
+from orienter.ui.service import RunManager
 
 
 def _mk_paths(tmp_path: Path) -> AppPaths:
@@ -23,19 +23,7 @@ def _mk_paths(tmp_path: Path) -> AppPaths:
     )
 
 
-def test_parse_slicer_stats_strict_normal_mode() -> None:
-    gcode = """; filament used [mm] = 1000.0, 25.0
-; filament used [g] = 3.2, 0.4
-; estimated printing time (silent mode) = 00:10:00
-; estimated printing time (normal mode) = 00:08:30
-"""
-    stats = parse_slicer_stats(gcode)
-    assert stats["filament_mm"] == 1025.0
-    assert stats["filament_g"] == 3.6
-    assert stats["time_s"] == 510.0
-
-
-def test_run_manager_completes_and_writes_artifacts_and_previews(tmp_path: Path) -> None:
+def test_run_manager_completes_and_writes_artifacts(tmp_path: Path) -> None:
     in_dir = tmp_path / "input"
     out_dir = tmp_path / "output"
     in_dir.mkdir()
@@ -44,10 +32,10 @@ def test_run_manager_completes_and_writes_artifacts_and_previews(tmp_path: Path)
 
     manager = RunManager(_mk_paths(tmp_path))
     run_id = manager.create_run(
-        RunCreate(input_path=str(in_dir), output_path=str(out_dir), profile="Creality_220_Generic", top_k=3)
+        RunCreate(input_path=str(in_dir), output_path=str(out_dir), profile="Creality_220_Generic")
     )
 
-    deadline = time.time() + 20
+    deadline = time.time() + 15
     status = "PENDING"
     while time.time() < deadline:
         detail = manager.run_detail(run_id)
@@ -61,31 +49,12 @@ def test_run_manager_completes_and_writes_artifacts_and_previews(tmp_path: Path)
     detail = manager.run_detail(run_id)
     assert detail is not None
     assert detail["models"]
-    model = detail["models"][0]
-    assert model["best_score"] is not None
-
-    metrics = model["metrics_json"]
-    assert metrics["support_filament_delta"] >= -0.5
-    assert metrics["support_time_delta"] >= -30
-    assert metrics["invalid_candidates_count"] == 0
-    assert metrics["candidates"]
-
-    first_candidate = metrics["candidates"][0]
-    assert "SUP0" in Path(first_candidate["gcode"]["SUP0"]).name
-    assert "SUP1" in Path(first_candidate["gcode"]["SUP1"]).name
-    assert first_candidate["candidate_id"] in Path(first_candidate["gcode"]["SUP0"]).name
-
-    preview_iso = Path(first_candidate["previews"]["iso"])
-    preview_top = Path(first_candidate["previews"]["top"])
-    preview_supports = Path(first_candidate["previews"]["supports_overlay"])
-    assert preview_iso.exists()
-    assert preview_top.exists()
-    assert preview_supports.exists()
+    assert detail["models"][0]["best_score"] is not None
 
     output_path = Path(detail["output_path"])
     assert (output_path / "reports" / "results.csv").exists()
-    assert any((output_path / "gcode").glob("*__SUP0.gcode"))
-    assert any((output_path / "gcode").glob("*__SUP1.gcode"))
+    assert (output_path / "rotated_stl" / "part_a_rotated.stl").exists()
+    assert (output_path / "gcode" / "part_a.gcode").exists()
 
 
 def test_recover_running_jobs_marks_interrupted(tmp_path: Path) -> None:
